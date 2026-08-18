@@ -35,7 +35,7 @@ $env:DATABASE_URL = "postgresql://...your-neon-connection-string..."
 Every Tuesday, run the orchestrator (once it exists — Phase 7):
 
 ```bash
-python pull_all.py
+python update_league.py
 ```
 
 Or run an individual phase:
@@ -50,8 +50,26 @@ Or run an individual phase:
 | 4     | `pull_transactions.py`  | trades / waivers / FAAB (`transactions`)        |
 | 5     | `pull_brackets.py`      | playoff brackets (`playoff_matchups`)           |
 | 6     | (season_teams backfill) | optimal points + activity columns               |
-| 7     | `pull_all.py`           | runs every phase for both leagues               |
-| 8     | (SQL views)             | analytics views for Grafana                     |
+| 7     | `update_league.py`      | runs every phase for both leagues               |
+| 8     | `build_views.py`        | (re)builds analytics views from `views.sql`     |
+
+`update_league.py` also runs Phase 8 at the end, so the weekly command refreshes
+the views too.
+
+## Analytics views (Phase 8)
+
+Read-only views for Grafana, all exposing `league_group` and using
+`COALESCE(alias, display_name)` for manager names:
+
+| View                     | Grain                | What it gives                                        |
+|--------------------------|----------------------|------------------------------------------------------|
+| `v_manager_season`       | manager × season     | W-L-T, points, potential, coaching efficiency, finish|
+| `v_alltime`              | manager × league     | total record, win %, avg score, titles               |
+| `v_h2h`                  | manager × opponent   | all-time W-L and avg margin ("who owns who")         |
+| `v_bench`                | manager × season     | bench points and points left vs optimal              |
+| `v_luck`                 | manager × season     | all-play record vs actual → luck index               |
+| `v_draft_tendencies`     | one row per pick     | player/position/round + repeat-pick flag             |
+| `v_transactions_summary` | manager × season     | trades, waiver claims, FAAB spent                    |
 
 ## Conventions
 

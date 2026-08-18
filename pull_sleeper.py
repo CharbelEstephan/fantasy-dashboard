@@ -21,6 +21,8 @@ import requests
 import psycopg2
 from psycopg2.extras import execute_values
 
+import load_env  # noqa: F401  -- loads .env into os.environ on import
+
 API = "https://api.sleeper.app/v1"
 
 # Current-season league_id for each of your leagues. The script chains
