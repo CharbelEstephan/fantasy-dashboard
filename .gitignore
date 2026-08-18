@@ -1,0 +1,15 @@
+# Secrets / environment
+.env
+.env.*
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Cached Sleeper data (e.g. players/nfl dump)
+players_nfl.json
+*.cache.json
+data/
