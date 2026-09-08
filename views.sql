@@ -1,15 +1,20 @@
 -- Phase 8 - Analytics views for Grafana.
 --
 -- All read-only. Every manager name is COALESCE(alias, display_name); every view
--- exposes league_group so the dashboard can filter per league. Rebuilt with
--- DROP VIEW + CREATE VIEW (never CREATE OR REPLACE) so column reorders are safe.
+-- exposes league_group so the dashboard can filter per league.
 -- v_matchup_results (the existing head-to-head feed) is reused, not modified.
+--
+-- Rebuilt with CREATE OR REPLACE VIEW so downstream user-built views (e.g.
+-- v_all_drafts on top of v_draft_tendencies, v_season_standings on
+-- v_matchup_results) are NOT dropped on a weekly run. This is safe as long as a
+-- view's output columns don't change name/type/order. If you ever need a
+-- structural change to one of these views, DROP it (with CASCADE) and recreate
+-- the dependent views afterward -- CREATE OR REPLACE cannot reorder columns.
 
 -- =====================================================================
 -- v_manager_season - per manager per season: record, points, efficiency, finish
 -- =====================================================================
-DROP VIEW IF EXISTS v_manager_season;
-CREATE VIEW v_manager_season AS
+CREATE OR REPLACE VIEW v_manager_season AS
 WITH bracket_span AS (
     -- w_offset = number of places the winners bracket assigns (it covers 1..w_offset).
     -- l_span   = the span of the losers/consolation bracket.
@@ -68,8 +73,7 @@ LEFT JOIN finish_final ff ON ff.league_id = st.league_id AND ff.roster_id = st.r
 -- =====================================================================
 -- v_alltime - all-time per manager (within a league): record, win%, avg score, titles
 -- =====================================================================
-DROP VIEW IF EXISTS v_alltime;
-CREATE VIEW v_alltime AS
+CREATE OR REPLACE VIEW v_alltime AS
 WITH rec AS (
     SELECT s.league_group, st.user_id,
            SUM(st.wins)   AS wins,
@@ -115,8 +119,7 @@ LEFT JOIN titles t    ON t.league_group  = r.league_group AND t.user_id  = r.use
 -- =====================================================================
 -- v_h2h - head-to-head matrix (all-time W-L and avg margin) per manager/opponent
 -- =====================================================================
-DROP VIEW IF EXISTS v_h2h;
-CREATE VIEW v_h2h AS
+CREATE OR REPLACE VIEW v_h2h AS
 SELECT
     league_group,
     user_id,
@@ -135,8 +138,7 @@ GROUP BY league_group, user_id, manager, opp_user_id, opponent;
 -- =====================================================================
 -- v_bench - bench-management leaderboard: bench points + points left vs optimal
 -- =====================================================================
-DROP VIEW IF EXISTS v_bench;
-CREATE VIEW v_bench AS
+CREATE OR REPLACE VIEW v_bench AS
 WITH pw AS (
     SELECT league_id, season, roster_id, user_id,
            SUM(points) FILTER (WHERE is_starter)     AS starter_points,
@@ -163,8 +165,7 @@ LEFT JOIN managers m  ON m.user_id = pw.user_id;
 -- =====================================================================
 -- v_luck - all-play record (vs whole league each week) vs actual -> luck index
 -- =====================================================================
-DROP VIEW IF EXISTS v_luck;
-CREATE VIEW v_luck AS
+CREATE OR REPLACE VIEW v_luck AS
 WITH weekly AS (
     SELECT a.league_id, a.season, a.week, a.roster_id, a.user_id,
            COUNT(*) FILTER (WHERE b.points < a.points) AS aw,
@@ -211,8 +212,7 @@ LEFT JOIN managers m      ON m.user_id = agg.user_id;
 -- =====================================================================
 -- v_draft_tendencies - one row per pick, enriched: repeat picks + positional by round
 -- =====================================================================
-DROP VIEW IF EXISTS v_draft_tendencies;
-CREATE VIEW v_draft_tendencies AS
+CREATE OR REPLACE VIEW v_draft_tendencies AS
 SELECT
     s.league_group,
     dp.season,
@@ -237,8 +237,7 @@ LEFT JOIN players p   ON p.player_id = dp.player_id;
 -- =====================================================================
 -- v_transactions_summary - activity per manager: trades, waiver claims, FAAB spent
 -- =====================================================================
-DROP VIEW IF EXISTS v_transactions_summary;
-CREATE VIEW v_transactions_summary AS
+CREATE OR REPLACE VIEW v_transactions_summary AS
 WITH enr AS (
     SELECT
         s.league_group,
