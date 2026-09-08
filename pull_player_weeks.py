@@ -56,6 +56,8 @@ def load_season(cur, league):
             players = m.get("players")
             if not players:
                 continue  # bye / empty slot -- nothing to record
+            if not m.get("points"):
+                continue  # team hasn't played this week (Sleeper pre-fills 0.0) -- skip
             ppts = m.get("players_points") or {}
             uid = roster_owner.get(rid)
             for pid in players:

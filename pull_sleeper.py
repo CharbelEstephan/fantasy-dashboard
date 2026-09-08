@@ -143,8 +143,8 @@ def load_season(cur, group, league):
         for m in matchups:
             rid = m.get("roster_id")
             score = m.get("points")
-            if score is None and m.get("matchup_id") is None:
-                continue  # unplayed / empty slot
+            if not score:
+                continue  # unplayed (Sleeper pre-fills future weeks at 0.0) / empty slot
             rows.append((lid, season, week, m.get("matchup_id"), rid,
                          roster_owner.get(rid), score, is_playoff))
         if rows:
