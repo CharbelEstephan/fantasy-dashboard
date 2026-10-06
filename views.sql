@@ -273,6 +273,9 @@ GROUP BY enr.league_group, enr.season, enr.league_id, enr.user_id, COALESCE(m.al
 -- v_joeld - "getting Joel'd": scoring the 2nd-most points in a week and
 -- losing anyway, because the schedule matched you against that week's top
 -- scorer. One row per occurrence. League slang; see README.
+--
+-- SCOPED TO "Sundays For the Boys" ON PURPOSE: the term is that league's
+-- vocabulary and means nothing in Sportz Ball Boys. Do not generalise it.
 -- =====================================================================
 CREATE OR REPLACE VIEW v_joeld AS
 WITH ranked AS (
@@ -309,4 +312,5 @@ SELECT
     victim_points,
     ROUND(winner_points - victim_points, 2) AS margin
 FROM top2
-WHERE victim_opponent = winner_user_id;
+WHERE victim_opponent = winner_user_id
+  AND league_group = 'Sundays For the Boys';

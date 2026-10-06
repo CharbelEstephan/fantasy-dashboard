@@ -79,6 +79,9 @@ week and lost anyway, because the schedule matched you against that week's
 highest scorer. `v_joeld` has one row per occurrence (winner, victim, both
 scores, margin, season, week, playoff flag).
 
+The view is **scoped to Sundays For the Boys only** — the term is that league's
+vocabulary and means nothing in Sportz Ball Boys.
+
 ```sql
 -- the all-time Joel'd leaderboard
 select victim, count(*) from v_joeld group by victim order by 2 desc;
