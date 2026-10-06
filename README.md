@@ -70,6 +70,19 @@ Read-only views for Grafana, all exposing `league_group` and using
 | `v_luck`                 | manager × season     | all-play record vs actual → luck index               |
 | `v_draft_tendencies`     | one row per pick     | player/position/round + repeat-pick flag             |
 | `v_transactions_summary` | manager × season     | trades, waiver claims, FAAB spent                    |
+| `v_joeld`                | one row per event    | "getting Joel'd" — see below                         |
+
+### Getting Joel'd
+
+League slang: you got **Joel'd** when you scored the *second-most* points in a
+week and lost anyway, because the schedule matched you against that week's
+highest scorer. `v_joeld` has one row per occurrence (winner, victim, both
+scores, margin, season, week, playoff flag).
+
+```sql
+-- the all-time Joel'd leaderboard
+select victim, count(*) from v_joeld group by victim order by 2 desc;
+```
 
 ## Conventions
 

@@ -268,3 +268,45 @@ FROM enr
 LEFT JOIN managers m ON m.user_id = enr.user_id
 WHERE enr.user_id IS NOT NULL
 GROUP BY enr.league_group, enr.season, enr.league_id, enr.user_id, COALESCE(m.alias, m.display_name);
+
+-- =====================================================================
+-- v_joeld - "getting Joel'd": scoring the 2nd-most points in a week and
+-- losing anyway, because the schedule matched you against that week's top
+-- scorer. One row per occurrence. League slang; see README.
+-- =====================================================================
+CREATE OR REPLACE VIEW v_joeld AS
+WITH ranked AS (
+    SELECT league_group, league_id, season, week, is_playoff,
+           manager, user_id, opp_user_id, points_for,
+           ROW_NUMBER() OVER (PARTITION BY league_id, week ORDER BY points_for DESC) AS rn
+    FROM v_matchup_results
+),
+top2 AS (
+    SELECT league_group, league_id, season, week,
+           bool_or(is_playoff) FILTER (WHERE rn = 1) AS is_playoff,
+           MAX(manager)        FILTER (WHERE rn = 1) AS winner,
+           MAX(user_id)        FILTER (WHERE rn = 1) AS winner_user_id,
+           MAX(points_for)     FILTER (WHERE rn = 1) AS winner_points,
+           MAX(manager)        FILTER (WHERE rn = 2) AS victim,
+           MAX(user_id)        FILTER (WHERE rn = 2) AS victim_user_id,
+           MAX(opp_user_id)    FILTER (WHERE rn = 2) AS victim_opponent,
+           MAX(points_for)     FILTER (WHERE rn = 2) AS victim_points
+    FROM ranked
+    WHERE rn <= 2
+    GROUP BY league_group, league_id, season, week
+)
+SELECT
+    league_group,
+    season,
+    league_id,
+    week,
+    is_playoff,
+    winner,
+    winner_user_id,
+    winner_points,
+    victim,
+    victim_user_id,
+    victim_points,
+    ROUND(winner_points - victim_points, 2) AS margin
+FROM top2
+WHERE victim_opponent = winner_user_id;

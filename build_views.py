@@ -18,6 +18,7 @@ SQL_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "views.sql")
 VIEWS = [
     "v_manager_season", "v_alltime", "v_h2h", "v_bench",
     "v_luck", "v_draft_tendencies", "v_transactions_summary",
+    "v_joeld",
 ]
 
 
