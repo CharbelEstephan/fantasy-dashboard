@@ -276,6 +276,13 @@ GROUP BY enr.league_group, enr.season, enr.league_id, enr.user_id, COALESCE(m.al
 --
 -- SCOPED TO "Sundays For the Boys" ON PURPOSE: the term is that league's
 -- vocabulary and means nothing in Sportz Ball Boys. Do not generalise it.
+--
+-- COVERAGE STARTS AT 2023. This view can only see the Sleeper era, because
+-- team_week only holds Sleeper data. The league ran on ESPN before 2023 and
+-- it reportedly happened to Joel many times back then -- which is where the
+-- name came from. Those years are NOT counted here and never will be unless
+-- the ESPN matchup history is backfilled. Always say "since 2023" when
+-- quoting these totals.
 -- =====================================================================
 CREATE OR REPLACE VIEW v_joeld AS
 WITH ranked AS (

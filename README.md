@@ -82,6 +82,11 @@ scores, margin, season, week, playoff flag).
 The view is **scoped to Sundays For the Boys only** — the term is that league's
 vocabulary and means nothing in Sportz Ball Boys.
 
+⚠️ **Coverage starts at 2023 (the Sleeper era).** The league ran on ESPN before
+that, and it happened to Joel plenty of times back then — which is where the name
+came from. Those seasons aren't in `team_week`, so they can't be counted. Always
+quote these totals as *"since 2023"*.
+
 ```sql
 -- the all-time Joel'd leaderboard
 select victim, count(*) from v_joeld group by victim order by 2 desc;
